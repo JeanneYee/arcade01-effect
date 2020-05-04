@@ -4,7 +4,8 @@
     "dependencies": {
         "device": "*",
         "arcade01": "github:JeanneYee/arcade01",
-        "corgio": "*"
+        "corgio": "*",
+        "animation": "*"
     },
     "files": [
         "main.blocks",
@@ -15,5 +16,5 @@
     "testFiles": [
         "test.ts"
     ],
-    "preferredEditor": "blocksprj"
+    "preferredEditor": "tsprj"
 }
