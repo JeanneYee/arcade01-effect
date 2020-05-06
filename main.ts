@@ -2,12 +2,32 @@ enum ActionKind {
     Walking,
     Idle,
     Jumping,
-    Eating,
     Eating_Right,
     Eating_Left
 }
 namespace SpriteKind {
     export const BadFood = SpriteKind.create()
+}
+function AnimateEating () {
+    if (DinoDirection == 0) {
+        animation.runImageAnimation(
+        Dino,
+        EatingRightFrame,
+        100,
+        false
+        )
+    } else if (DinoDirection == 1) {
+        animation.runImageAnimation(
+        Dino,
+        EatingLeftFrame,
+        100,
+        false
+        )
+        pause(50)
+    }
+}
+function MakeEatingFoulEggSound () {
+    music.jumpDown.play()
 }
 controller.left.onEvent(ControllerButtonEvent.Pressed, function () {
     Dino.setImage(img`
@@ -28,52 +48,17 @@ controller.left.onEvent(ControllerButtonEvent.Pressed, function () {
         . . . . f 7 d f f 7 7 f . . . .
         . . . . f f f . . f f f . . . .
     `)
+    DinoDirection = 1
 })
 sprites.onOverlap(SpriteKind.Player, SpriteKind.Food, function (sprite, otherSprite) {
+    MakeEatingEggSound()
+    AnimateEating()
     info.changeScoreBy(1)
     otherSprite.destroy()
-    if (img`
-        . . . . . . f f f f f f f f f .
-        . . . . 4 f 7 7 7 7 7 7 7 7 7 f
-        . . . . 4 f 7 7 7 1 f 1 7 7 7 f
-        . . . . f f 7 7 7 1 f 1 7 7 7 f
-        . . . . 4 f 7 7 7 1 1 1 7 7 7 f
-        . . . 4 4 f 7 7 f 7 7 7 7 7 7 f
-        . . . f f 7 7 7 f f f f f f f .
-        . . . 4 f 7 7 7 7 7 7 f . . . .
-        . . 4 4 f 7 f 7 7 7 7 7 7 f . .
-        . . f f 7 7 f 7 7 7 7 7 7 f . .
-        . 4 4 f 7 7 7 7 d d 7 f . . . .
-        4 f f 7 7 7 7 d d d 7 f . . . .
-        f 7 7 7 7 7 7 d d d 7 f . . . .
-        f f f f f 7 7 d d d 7 f . . . .
-        . . . . f 7 7 f f d 7 f . . . .
-        . . . . f f f . . f f f . . . .
-    ` == sprite.image) {
-        animation.setAction(Dino, ActionKind.Eating_Right)
-    } else if (Dino.image == img`
-        . f f f f f f f f f . . . . . .
-        f 7 7 7 7 7 7 7 7 7 f 4 . . . .
-        f 7 7 7 1 f 1 7 7 7 f 4 . . . .
-        f 7 7 7 1 f 1 7 7 7 f f . . . .
-        f 7 7 7 1 1 1 7 7 7 f 4 . . . .
-        f 7 7 7 7 7 7 f 7 7 f 4 4 . . .
-        . f f f f f f f 7 7 7 f f . . .
-        . . . . f 7 7 7 7 7 7 f 4 . . .
-        . . f 7 7 7 7 7 7 f 7 f 4 4 . .
-        . . f 7 7 7 7 7 7 f 7 7 f f . .
-        . . . . f 7 d d 7 7 7 7 f 4 4 .
-        . . . . f 7 d d d 7 7 7 7 f f 4
-        . . . . f 7 d d d 7 7 7 7 7 1 f
-        . . . . f 7 d d d 7 7 f f f f f
-        . . . . f 7 d f f 7 7 f . . . .
-        . . . . f f f . . f f f . . . .
-    `) {
-        animation.setAction(Dino, ActionKind.Eating_Left)
-    } else {
-    	
-    }
 })
+function MakeEatingEggSound () {
+    music.jumpUp.play()
+}
 controller.right.onEvent(ControllerButtonEvent.Pressed, function () {
     Dino.setImage(img`
         . . . . . . f f f f f f f f f .
@@ -93,8 +78,11 @@ controller.right.onEvent(ControllerButtonEvent.Pressed, function () {
         . . . . f 7 7 f f d 7 f . . . .
         . . . . f f f . . f f f . . . .
     `)
+    DinoDirection = 0
 })
 sprites.onOverlap(SpriteKind.Player, SpriteKind.BadFood, function (sprite, otherSprite) {
+    MakeEatingFoulEggSound()
+    AnimateEating()
     controller.moveSprite(Dino, 10, 10)
     otherSprite.destroy()
     Dino.startEffect(effects.bubbles)
@@ -104,6 +92,9 @@ sprites.onOverlap(SpriteKind.Player, SpriteKind.BadFood, function (sprite, other
 })
 let FoulEgg: Sprite = null
 let Egg: Sprite = null
+let DinoDirection = 0
+let EatingRightFrame: Image[] = []
+let EatingLeftFrame: Image[] = []
 let Dino: Sprite = null
 scene.setBackgroundColor(1)
 Dino = sprites.create(img`
@@ -128,45 +119,7 @@ controller.moveSprite(Dino)
 info.setScore(0)
 Dino.setFlag(SpriteFlag.StayInScreen, true)
 info.startCountdown(30)
-let EatRight = animation.createAnimation(ActionKind.Eating_Right, 200)
-EatRight.addAnimationFrame(img`
-    . . . . . . f f f f f f f f f .
-    . . . . 4 f 7 7 7 7 7 7 7 7 7 f
-    . . . . 4 f 7 7 7 1 f 1 7 7 7 f
-    . . . . f f 7 7 7 1 f 1 7 7 7 f
-    . . . . 4 f 7 7 7 1 1 1 7 7 7 f
-    . . . 4 4 f 7 7 f f f f 7 7 7 f
-    . . . f f 7 7 7 f 2 2 f f f f .
-    . . . 4 f 7 7 7 f e 2 e . . . .
-    . . 4 4 f 7 f 7 7 7 7 7 7 f . .
-    . . f f 7 7 f 7 7 7 7 7 7 f . .
-    . 4 4 f 7 7 7 7 7 7 7 f . . . .
-    4 f f 7 7 7 7 7 d d 7 f . . . .
-    f 7 7 7 7 7 7 d d d 7 f . . . .
-    f f f f f 7 7 d d d 7 f . . . .
-    . . . . f 7 7 f f d 7 f . . . .
-    . . . . f f f . . f f f . . . .
-`)
-EatRight.addAnimationFrame(img`
-    . . . . . . f f f f f f f f f .
-    . . . . 4 f 7 7 7 7 7 7 7 7 7 f
-    . . . . 4 f 7 7 7 1 f 1 7 7 7 f
-    . . . . f f 7 7 7 1 f 1 7 7 7 f
-    . . . . 4 f 7 7 7 1 1 1 7 7 7 f
-    . . . 4 4 f 7 7 f 7 7 7 7 7 7 f
-    . . . f f 7 7 7 f f f f f f f .
-    . . . 4 f 7 7 7 7 7 7 f . . . .
-    . . 4 4 f 7 f 7 7 7 7 7 7 f . .
-    . . f f 7 7 f 7 7 7 7 7 7 f . .
-    . 4 4 f 7 7 7 7 d d 7 f . . . .
-    4 f f 7 7 7 7 d d d 7 f . . . .
-    f 7 7 7 7 7 7 d d d 7 f . . . .
-    f f f f f 7 7 d d d 7 f . . . .
-    . . . . f 7 7 f f d 7 f . . . .
-    . . . . f f f . . f f f . . . .
-`)
-let EatLeft = animation.createAnimation(ActionKind.Eating_Left, 200)
-EatLeft.addAnimationFrame(img`
+EatingLeftFrame = [img`
     . f f f f f f f f f . . . . . .
     f 7 7 7 7 7 7 7 7 7 f 4 . . . .
     f 7 7 7 1 f 1 7 7 7 f 4 . . . .
@@ -183,8 +136,7 @@ EatLeft.addAnimationFrame(img`
     . . . . f 7 d d d 7 7 f f f f f
     . . . . f 7 d f f 7 7 f . . . .
     . . . . f f f . . f f f . . . .
-`)
-EatLeft.addAnimationFrame(img`
+`, img`
     . f f f f f f f f f . . . . . .
     f 7 7 7 7 7 7 7 7 7 f 4 . . . .
     f 7 7 7 1 f 1 7 7 7 f 4 . . . .
@@ -201,9 +153,42 @@ EatLeft.addAnimationFrame(img`
     . . . . f 7 d d d 7 7 f f f f f
     . . . . f 7 d f f 7 7 f . . . .
     . . . . f f f . . f f f . . . .
-`)
-animation.attachAnimation(Dino, EatLeft)
-animation.attachAnimation(Dino, EatRight)
+`]
+EatingRightFrame = [img`
+    . . . . . . f f f f f f f f f .
+    . . . . 4 f 7 7 7 7 7 7 7 7 7 f
+    . . . . 4 f 7 7 7 1 f 1 7 7 7 f
+    . . . . f f 7 7 7 1 f 1 7 7 7 f
+    . . . . 4 f 7 7 7 1 1 1 7 7 7 f
+    . . . 4 4 f 7 7 f f f f 7 7 7 f
+    . . . f f 7 7 7 f 2 2 f f f f .
+    . . . 4 f 7 7 7 f e 2 e . . . .
+    . . 4 4 f 7 f 7 7 7 7 7 7 f . .
+    . . f f 7 7 f 7 7 7 7 7 7 f . .
+    . 4 4 f 7 7 7 7 7 7 7 f . . . .
+    4 f f 7 7 7 7 7 d d 7 f . . . .
+    f 7 7 7 7 7 7 d d d 7 f . . . .
+    f f f f f 7 7 d d d 7 f . . . .
+    . . . . f 7 7 f f d 7 f . . . .
+    . . . . f f f . . f f f . . . .
+`, img`
+    . . . . . . f f f f f f f f f .
+    . . . . 4 f 7 7 7 7 7 7 7 7 7 f
+    . . . . 4 f 7 7 7 1 f 1 7 7 7 f
+    . . . . f f 7 7 7 1 f 1 7 7 7 f
+    . . . . 4 f 7 7 7 1 1 1 7 7 7 f
+    . . . 4 4 f 7 7 f 7 7 7 7 7 7 f
+    . . . f f 7 7 7 f f f f f f f .
+    . . . 4 f 7 7 7 7 7 7 f . . . .
+    . . 4 4 f 7 f 7 7 7 7 7 7 f . .
+    . . f f 7 7 f 7 7 7 7 7 7 f . .
+    . 4 4 f 7 7 7 7 d d 7 f . . . .
+    4 f f 7 7 7 7 d d d 7 f . . . .
+    f 7 7 7 7 7 7 d d d 7 f . . . .
+    f f f f f 7 7 d d d 7 f . . . .
+    . . . . f 7 7 f f d 7 f . . . .
+    . . . . f f f . . f f f . . . .
+`]
 game.onUpdateInterval(2000, function () {
     Egg = sprites.create(img`
         . . . . . . . . . . . . . . . .
