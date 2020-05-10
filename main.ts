@@ -77,6 +77,9 @@ f f f f f 7 7 f f d 7 f . . . .
 `)
     DinoDirection = 0
 })
+info.onCountdownEnd(function () {
+    game.over(true, effects.starField)
+})
 function MakeEatingFoulEggSound () {
     music.jumpDown.play()
 }
